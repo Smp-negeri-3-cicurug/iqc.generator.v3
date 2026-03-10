@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IQC Generator V3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #1e1e2e;
+      --accent: #7fff6e;
+      --accent2: #3de8c0;
+      --text: #e8e8f0;
+      --muted: #555570;
+      --danger: #ff5f57;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Unbounded', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(127,255,110,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(127,255,110,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-orb {
+      position: fixed;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.15;
+    }
+    .glow-orb.one { background: var(--accent); top: -100px; left: -100px; }
+    .glow-orb.two { background: var(--accent2); bottom: -100px; right: -100px; }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(127,255,110,0.08);
+      border: 1px solid rgba(127,255,110,0.2);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.5s ease infinite;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 7vw, 2.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+    }
+    h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 0.7rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+      animation-delay: 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+
+    .field { margin-bottom: 1.25rem; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: none;
+    }
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(127,255,110,0.08);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .info-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent2);
+      margin-top: 0.4rem;
+      opacity: 0.8;
+    }
+
+    .btn-generate {
+      width: 100%;
+      padding: 1rem;
+      background: var(--accent);
+      color: #0a0a0f;
+      font-family: 'Unbounded', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+    .btn-generate:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(127,255,110,0.3);
+    }
+    .btn-generate:active:not(:disabled) { transform: translateY(0); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-generate .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #0a0a0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    .btn-generate.loading .btn-text { display: none; }
+    .btn-generate.loading .spinner { display: block; }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      animation: fadeUp 0.5s ease both;
+      display: none;
+    }
+    .result-card.show { display: block; }
+
+    .result-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .result-img-wrap {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #0a0a0f;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .result-img-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-family: 'Unbounded', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .btn-action:hover { transform: translateY(-1px); }
+    .btn-download { background: var(--accent2); color: #0a0a0f; }
+    .btn-copy {
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border: 1px solid var(--border) !important;
+    }
+
+    .error-box {
+      background: rgba(255,95,87,0.08);
+      border: 1px solid rgba(255,95,87,0.2);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      color: var(--danger);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      margin-top: 1rem;
+      display: none;
+    }
+    .error-box.show { display: block; }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    @media (max-width: 480px) {
+      .row { grid-template-columns: 1fr; }
+      .card { padding: 1.5rem; }
+      h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-orb one"></div>
+  <div class="glow-orb two"></div>
+
+  <div class="container">
+    <header>
+      <div class="badge">IQC Generator · V3</div>
+      <h1>Generate<br/><span>IQC Card</span></h1>
+      <p class="subtitle">// powered by api-faa.my.id</p>
+    </header>
+
+    <div class="card">
+      <div class="field">
+        <label>Prompt / Pesan</label>
+        <textarea id="prompt" rows="3" placeholder="Tulis sesuatu... misal: Haalo guys!"></textarea>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Jam</label>
+          <input type="text" id="jam" readonly />
+          <span class="info-chip">⏱ auto-detect waktu lokal</span>
+        </div>
+        <div class="field">
+          <label>Baterai (%)</label>
+          <input type="number" id="batre" min="0" max="100" placeholder="67" />
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:1.5rem">
+        <button class="btn-generate" id="btnGenerate" onclick="generate()">
+          <span class="btn-text">⚡ Generate Sekarang</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
+
+      <div class="error-box" id="errorBox"></div>
+    </div>
+
+    <div class="result-card" id="resultCard">
+      <div class="result-label">// hasil generate</div>
+      <div class="result-img-wrap">
+        <img id="resultImg" src="" alt="IQC Result" />
+      </div>
+      <div class="result-actions">
+        <button class="btn-action btn-download" onclick="downloadImg()">↓ Download</button>
+        <button class="btn-action btn-copy" onclick="copyImg()">⎘ Salin Gambar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updateJam() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('jam').value = `${h}:${m}`;
+    }
+    updateJam();
+    setInterval(updateJam, 1000);
+
+    let lastBlobUrl = null;
+
+    async function generate() {
+      const prompt = document.getElementById('prompt').value.trim();
+      const jam = document.getElementById('jam').value;
+      const batre = document.getElementById('batre').value;
+      const errorBox = document.getElementById('errorBox');
+      const btn = document.getElementById('btnGenerate');
+      const resultCard = document.getElementById('resultCard');
+
+      errorBox.classList.remove('show');
+      errorBox.textContent = '';
+
+      if (!prompt) {
+        errorBox.textContent = '⚠ Prompt tidak boleh kosong!';
+        errorBox.classList.add('show');
+        return;
+      }
+      if (!batre || batre < 0 || batre > 100) {
+        errorBox.textContent = '⚠ Masukkan persentase baterai yang valid (0–100)!';
+        errorBox.classList.add('show');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+      resultCard.classList.remove('show');
+
+      try {
+        const url = `/api/generate?prompt=${encodeURIComponent(prompt)}&jam=${encodeURIComponent(jam)}&batre=${encodeURIComponent(batre)}`;
+        const res = await fetch(url);
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+
+        const blob = await res.blob();
+        if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+        lastBlobUrl = URL.createObjectURL(blob);
+
+        document.getElementById('resultImg').src = lastBlobUrl;
+        resultCard.classList.add('show');
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (err) {
+        errorBox.textContent = `❌ ${err.message}`;
+        errorBox.classList.add('show');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    }
+
+    function downloadImg() {
+      if (!lastBlobUrl) return;
+      const a = document.createElement('a');
+      a.href = lastBlobUrl;
+      a.download = `iqc-${Date.now()}.png`;
+      a.click();
+    }
+
+    async function copyImg() {
+      if (!lastBlobUrl) return;
+      try {
+        const res = await fetch(lastBlobUrl);
+        const blob = await res.blob();
+        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+        const btn = document.querySelector('.btn-copy');
+        const orig = btn.textContent;
+        btn.textContent = '✓ Tersalin!';
+        setTimeout(() => btn.textContent = orig, 2000);
+      } catch {
+        alert('Browser tidak support copy gambar. Gunakan tombol Download.');
+      }
+    }
+
+    document.getElementById('prompt').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generate(); }
+    });
+  </script>
+</body>
+  </html>
+  

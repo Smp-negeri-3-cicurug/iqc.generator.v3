@@ -1,0 +1,9 @@
+{
+  "name": "iqc-generator-v3",
+  "version": "3.0.0",
+  "description": "IQC Generator V3 - Powered by api-faa.my.id",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}

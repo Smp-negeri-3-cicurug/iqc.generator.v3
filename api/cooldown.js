@@ -1,3 +1,6 @@
+let lastRequestTime = 0;
+const COOLDOWN_MS = 60000;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -5,41 +8,19 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  try {
-    const { prompt, jam, batre } = req.query;
+  const now = Date.now();
+  const elapsed = now - lastRequestTime;
+  const remaining = Math.max(0, Math.ceil((COOLDOWN_MS - elapsed) / 1000));
+  const ready = elapsed >= COOLDOWN_MS;
 
-    if (!prompt || !jam || !batre) {
-      return res.status(400).json({ error: 'Parameter prompt, jam, dan batre wajib diisi.' });
+  if (req.method === 'POST') {
+    if (!ready) {
+      return res.status(429).json({ ready: false, remainingSeconds: remaining });
     }
-
-    const apiUrl = `https://api-faa.my.id/faa/iqcv2?prompt=${encodeURIComponent(prompt)}&jam=${encodeURIComponent(jam)}&batre=${encodeURIComponent(batre)}`;
-
-    const response = await fetch(apiUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-        'Accept': 'image/*,*/*',
-        'Referer': 'https://api-faa.my.id/',
-        'Origin': 'https://api-faa.my.id',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`External API error: ${response.status}`);
-    }
-
-    const imageBuffer = await response.arrayBuffer();
-
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', 'inline; filename="iqc-generated.png"');
-    res.setHeader('Cache-Control', 'no-store');
-
-    return res.status(200).send(Buffer.from(imageBuffer));
-
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({
-      error: 'Failed to generate image',
-      message: error.message
-    });
+    lastRequestTime = now;
+    return res.status(200).json({ ready: true, remainingSeconds: 0 });
   }
+
+  // GET - just check
+  return res.status(200).json({ ready, remainingSeconds: remaining });
 }

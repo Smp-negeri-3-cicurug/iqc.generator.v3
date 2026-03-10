@@ -16,8 +16,14 @@ export default async function handler(req, res) {
 
     const response = await fetch(apiUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "image/*,*/*",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Referer": "https://api-faa.my.id/",
+        "Origin": "https://api-faa.my.id",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
       },
     });
 
@@ -34,4 +40,4 @@ export default async function handler(req, res) {
   } catch (err) {
     res.status(500).json({ error: "Gagal menghubungi API.", detail: err.message });
   }
-      }
+}

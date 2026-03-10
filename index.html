@@ -495,19 +495,25 @@
 
     function downloadImg() {
       if (!lastImageUrl) return;
-      var img = document.getElementById('resultImg');
-      var canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(function(blob) {
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'iqc-' + Date.now() + '.png';
-        a.click();
-        URL.revokeObjectURL(a.href);
-      }, 'image/png');
+      var tempImg = new Image();
+      tempImg.crossOrigin = 'anonymous';
+      tempImg.onload = function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = tempImg.naturalWidth;
+        canvas.height = tempImg.naturalHeight;
+        canvas.getContext('2d').drawImage(tempImg, 0, 0);
+        canvas.toBlob(function(blob) {
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'iqc-' + Date.now() + '.png';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }, 'image/png');
+      };
+      tempImg.onerror = function() {
+        window.open(lastImageUrl, '_blank');
+      };
+      tempImg.src = lastImageUrl;
     }
 
     async function copyImg() {
@@ -530,4 +536,4 @@
     });
   </script>
 </body>
-  </html>
+</html>

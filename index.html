@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
   <title>IQC Generator V3</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
@@ -495,15 +495,19 @@
 
     function downloadImg() {
       if (!lastImageUrl) return;
-      var url = new URL(lastImageUrl);
-      var prompt = url.searchParams.get('prompt');
-      var jam = url.searchParams.get('jam');
-      var batre = url.searchParams.get('batre');
-      var downloadUrl = '/api/download?prompt=' + encodeURIComponent(prompt) + '&jam=' + encodeURIComponent(jam) + '&batre=' + encodeURIComponent(batre);
-      var a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = 'iqc-' + Date.now() + '.png';
-      a.click();
+      var img = document.getElementById('resultImg');
+      var canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob(function(blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'iqc-' + Date.now() + '.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }, 'image/png');
     }
 
     async function copyImg() {

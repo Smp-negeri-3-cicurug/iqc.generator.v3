@@ -495,7 +495,15 @@
 
     function downloadImg() {
       if (!lastImageUrl) return;
-      window.open(lastImageUrl, '_blank');
+      var url = new URL(lastImageUrl);
+      var prompt = url.searchParams.get('prompt');
+      var jam = url.searchParams.get('jam');
+      var batre = url.searchParams.get('batre');
+      var downloadUrl = '/api/download?prompt=' + encodeURIComponent(prompt) + '&jam=' + encodeURIComponent(jam) + '&batre=' + encodeURIComponent(batre);
+      var a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = 'iqc-' + Date.now() + '.png';
+      a.click();
     }
 
     async function copyImg() {
@@ -518,4 +526,4 @@
     });
   </script>
 </body>
-</html>
+  </html>
